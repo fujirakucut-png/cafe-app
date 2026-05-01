@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>在庫管理</title>
+
+<style>
+/* ===== 全体 ===== */
+body {
+    font-family: Arial;
+    margin: 20px;
+    background: #eaeded;
+}
+
+/* ===== 上部 ===== */
+.top-bar {
+    margin-bottom: 10px;
+}
+
+a {
+    text-decoration: none;
+    margin-right: 10px;
+    color: #232f3e;
+}
+
+/* ===== カテゴリタブ ===== */
+.tabs {
+    margin: 10px 0;
+}
+
+.tabs a {
+    display: inline-block;
+    background: #232f3e;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    margin-right: 5px;
+}
+
+.tabs a:hover {
+    background: #ff9900;
+    color: black;
+}
+
+/* ===== 検索・フォーム ===== */
+form {
+    margin-bottom: 10px;
+}
+
+input, select {
+    padding: 5px;
+    margin-right: 5px;
+}
+
+/* ===== テーブル ===== */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background: #232f3e;
+    color: white;
+}
+
+tr:hover {
+    background: #f3f3f3;
+}
+
+/* ===== 在庫0 ===== */
+.low-stock {
+    color: red;
+    font-weight: bold;
+}
+
+/* ===== ボタン ===== */
+button {
+    background: #ff9900;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #e68a00;
+}
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 768px) {
+
+    body {
+        margin: 10px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    input {
+        width: 50px;
+    }
+
+    button {
+        font-size: 12px;
+    }
+
+    .tabs a {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>在庫管理</h1>
+
+<!-- 上部メニュー -->
+<div class="top-bar">
+    <a href="/logs">履歴を見る</a>
+    <a href="/logout">ログアウト</a>
+</div>
+
+<!-- カテゴリ -->
+<div class="tabs">
+    <a href="/?category=all">全商品</a>
+    <a href="/?category=drink">飲料</a>
+    <a href="/?category=food">食品</a>
+    <a href="/?category=goods">雑貨</a>
+</div>
+
+<!-- 検索 -->
+<form method="get">
+    <input name="keyword" placeholder="ID or 商品名" value="{{ keyword }}">
+    <button>検索</button>
+</form>
+
+<!-- 商品追加 -->
+<form action="/add" method="post">
+    <input name="name" placeholder="商品名">
+
+    <select name="unit_id">
+        {% for u in units %}
+        <option value="{{ u.id }}">{{ u.name }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="category_id">
+        {% for c in categories %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+    </select>
+
+    <button>追加</button>
+</form>
+
+<!-- ===== 在庫テーブル ===== -->
+<table>
+<tr>
+    <th>ID</th>
+    <th>商品名</th>
+    <th>カテゴリ</th>
+    <th>単位</th>
+    <th>在庫</th>
+    <th>入庫</th>
+    <th>出庫</th>
+    <th>削除</th>
+</tr>
+
+{% for p in products %}
+<tr>
+
+    <td>{{ p.id }}</td>
+    <td>{{ p.name }}</td>
+    <td>{{ p.category_name }}</td>
+    <td>{{ p.unit_name }}</td>
+
+    <td class="{% if p.stock == 0 %}low-stock{% endif %}">
+        {{ p.stock }}
+    </td>
+
+    <!-- 入庫 -->
+    <td>
+        <form action="/in/{{ p.id }}" method="post">
+            <input type="number" name="quantity" min="1">
+            <button>＋</button>
+        </form>
+    </td>
+
+    <!-- 出庫 -->
+    <td>
+        <form action="/out/{{ p.id }}" method="post"
+              onsubmit="return confirm('出庫しますか？')">
+            <input type="number" name="quantity" min="1">
+            <button>−</button>
+        </form>
+    </td>
+
+    <!-- 削除 -->
+    <td>
+        <a href="/delete/{{ p.id }}"
+           onclick="return confirm('削除しますか？')">削除</a>
+    </td>
+
+</tr>
+{% endfor %}
+</table>
+
+</body>
+</html>
